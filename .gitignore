@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+.pytest_cache/
+.DS_Store
+*.pyc
+
+# x264 encoded output files (large binary files)
+script/encoded_files/
+script/encoded_outputs/
+
+# Input video — too large for git (44MB)
+script/foreman-cif.yuv
