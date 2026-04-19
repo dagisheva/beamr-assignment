@@ -51,7 +51,7 @@ The following parameters can be adjusted at the top of `run_analysis.py`:
 
 ## Output
 
-- `encoded_outputs/` — encoded .264 files for each QP value
+- `encoded_files/` — encoded .264 files for each QP value
 - `qp_analysis_report.xlsx` — Excel report containing:
   - Data table: QP, File Size (KB), FPS (median)
   - Chart: File Size vs QP

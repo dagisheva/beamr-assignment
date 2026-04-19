@@ -10,7 +10,7 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 INPUT_FILE = "foreman-cif.yuv"
 RESOLUTION = "352x288"
-OUTPUT_DIR = "encoded_outputs"
+OUTPUT_DIR = "encoded_files"
 RESULTS_FILE = "qp_analysis_report.xlsx"
 QP_RANGE = range(1, 52)
 RUNS_PER_QP = 3
