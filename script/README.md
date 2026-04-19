@@ -17,7 +17,10 @@ QP (Quantization Parameter) controls how aggressively video is compressed:
 ## Prerequisites
 
 - Python 3.12+
-- x264 encoder (install via `brew install x264` on macOS, `apt install x264` on Ubuntu)
+- x264 encoder:
+  - macOS: `brew install x264`
+  - Ubuntu: `sudo apt install x264`
+  - Windows: скачать исполняемый файл с [videolan.org](https://www.videolan.org/developers/x264.html) и добавить в PATH
 - Python packages: `openpyxl`
 
 ## Setup
