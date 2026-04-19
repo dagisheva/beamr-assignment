@@ -3,6 +3,7 @@ __pycache__/
 .pytest_cache/
 .DS_Store
 *.pyc
+.idea/
 
 # x264 encoded output files (large binary files)
 script/encoded_files/
