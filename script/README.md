@@ -25,9 +25,22 @@ QP (Quantization Parameter) controls how aggressively video is compressed:
 
 ## Setup
 
+From the repo root, run the shared setup script (works on Windows, macOS, Linux):
+
 ```bash
-python3.12 -m venv venv
+python setup.py
+```
+
+This creates `script/venv` and installs all dependencies. To set up manually:
+
+```bash
+python -m venv venv
+
+# macOS / Linux:
 source venv/bin/activate
+# Windows:
+venv\Scripts\activate
+
 pip install openpyxl
 ```
 

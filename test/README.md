@@ -42,9 +42,22 @@ test/
 
 ## Setup
 
+From the repo root, run the shared setup script (works on Windows, macOS, Linux):
+
 ```bash
-python3 -m venv venv
+python setup.py
+```
+
+This creates `test/venv` and installs all dependencies. To set up manually:
+
+```bash
+python -m venv venv
+
+# macOS / Linux:
 source venv/bin/activate
+# Windows:
+venv\Scripts\activate
+
 pip install -r requirements.txt
 ```
 
