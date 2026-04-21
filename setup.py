@@ -5,8 +5,7 @@ Sets up virtual environments for both script/ and test/.
 Works on Windows, macOS, and Linux.
 
 Usage:
-    python setup.py           # set up both environments
-    python setup.py --clean   # delete and rebuild both venvs from scratch
+    python setup.py
 """
 
 import sys
@@ -14,7 +13,6 @@ import os
 import shutil
 import subprocess
 import venv
-import argparse
 
 MIN_PYTHON = (3, 9)  # f-strings (3.6+) and venv module (3.3+) are the actual floor; 3.9 is a reasonable baseline
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -94,20 +92,16 @@ def pip_run(pip, args, context):
         fail(f"pip failed while {context}. See output above.")
 
 
-def setup_venv(directory, deps=None, requirements=None, clean=False):
+def setup_venv(directory, deps=None, requirements=None):
     venv_dir = os.path.join(ROOT, directory, "venv")
     pip = os.path.join(venv_dir, "Scripts" if sys.platform == "win32" else "bin", "pip")
-
-    if clean and os.path.isdir(venv_dir):
-        shutil.rmtree(venv_dir)
-        print(f"    Removed existing {directory}/venv.")
 
     fresh = False
     if os.path.isdir(venv_dir):
         if not os.path.exists(pip):
             fail(
                 f"{directory}/venv exists but pip is missing (broken environment). "
-                f"Re-run with --clean to rebuild."
+                f"Delete {directory}/venv and re-run."
             )
         print(f"    {directory}/venv already exists, skipping creation.")
     else:
@@ -152,7 +146,7 @@ def smoke_test(python, imports, directory):
             subprocess.run([python, "-c", f"import {module}"], check=True, capture_output=True)
             ok(f"import {module}")
         except subprocess.CalledProcessError:
-            fail(f"'import {module}' failed in {directory}/venv — try re-running with --clean.")
+            fail(f"'import {module}' failed in {directory}/venv — try deleting {directory}/venv and re-running.")
 
 
 def print_next_steps():
@@ -171,19 +165,15 @@ def print_next_steps():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--clean", action="store_true", help="delete and rebuild venvs from scratch")
-    cli = parser.parse_args()
-
     check_python()
     check_x264()
     check_chrome()
 
     step("Setting up script/ environment")
-    script_python = setup_venv("script", deps=["openpyxl"], clean=cli.clean)
+    script_python = setup_venv("script", deps=["openpyxl"])
 
     step("Setting up test/ environment")
-    test_python = setup_venv("test", requirements="requirements.txt", clean=cli.clean)
+    test_python = setup_venv("test", requirements="requirements.txt")
 
     smoke_test(script_python, ["openpyxl"], "script")
     smoke_test(test_python, ["selenium", "pytest"], "test")
