@@ -5,7 +5,8 @@ Sets up virtual environments for both script/ and test/.
 Works on Windows, macOS, and Linux.
 
 Usage:
-    python setup.py
+    python setup.py           # set up both environments
+    python setup.py --clean   # delete and rebuild both venvs from scratch
 """
 
 import sys
@@ -13,8 +14,9 @@ import os
 import shutil
 import subprocess
 import venv
+import argparse
 
-MIN_PYTHON = (3, 9)
+MIN_PYTHON = (3, 9)  # f-strings (3.6+) and venv module (3.3+) are the actual floor; 3.9 is a reasonable baseline
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -42,8 +44,9 @@ def check_python():
 
 def check_x264():
     step("Checking x264 (required for script/)")
-    if shutil.which("x264"):
-        ok(f"x264 found at {shutil.which('x264')}")
+    path = shutil.which("x264")
+    if path:
+        ok(f"x264 found at {path}")
         return
     warn("x264 not found on PATH — script/run_analysis.py will not work until it is installed.")
     print("    Install options:")
@@ -56,73 +59,133 @@ def check_x264():
 
 def check_chrome():
     step("Checking Google Chrome (required for test/)")
-    candidates = ["google-chrome", "google-chrome-stable", "chromium-browser", "chromium"]
     if sys.platform == "darwin":
         mac_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
         if os.path.exists(mac_path):
             ok(f"Chrome found at {mac_path}")
             return
     if sys.platform == "win32":
-        win_paths = [
+        for p in [
             r"C:\Program Files\Google\Chrome\Application\chrome.exe",
             r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-        ]
-        for p in win_paths:
+        ]:
             if os.path.exists(p):
                 ok(f"Chrome found at {p}")
                 return
+    candidates = [
+        "google-chrome", "google-chrome-stable",
+        "chromium-browser", "chromium",
+        "/snap/bin/chromium",           # Ubuntu Snap
+        "/var/lib/flatpak/exports/bin/org.chromium.Chromium",  # Flatpak
+    ]
     for candidate in candidates:
-        if shutil.which(candidate):
-            ok(f"Chrome found: {shutil.which(candidate)}")
+        path = shutil.which(candidate) or (candidate if os.path.exists(candidate) else None)
+        if path:
+            ok(f"Chrome found: {path}")
             return
     warn("Google Chrome not found — test/ will not work until it is installed.")
     print("    Download from https://www.google.com/chrome/")
 
 
-def setup_venv(directory, deps=None, requirements=None):
+def pip_run(pip, args, context):
+    try:
+        subprocess.run([pip] + args, check=True)
+    except subprocess.CalledProcessError:
+        fail(f"pip failed while {context}. See output above.")
+
+
+def setup_venv(directory, deps=None, requirements=None, clean=False):
     venv_dir = os.path.join(ROOT, directory, "venv")
     pip = os.path.join(venv_dir, "Scripts" if sys.platform == "win32" else "bin", "pip")
 
+    if clean and os.path.isdir(venv_dir):
+        shutil.rmtree(venv_dir)
+        print(f"    Removed existing {directory}/venv.")
+
+    fresh = False
     if os.path.isdir(venv_dir):
+        if not os.path.exists(pip):
+            fail(
+                f"{directory}/venv exists but pip is missing (broken environment). "
+                f"Re-run with --clean to rebuild."
+            )
         print(f"    {directory}/venv already exists, skipping creation.")
     else:
-        venv.create(venv_dir, with_pip=True)
+        try:
+            venv.create(venv_dir, with_pip=True)
+        except Exception as e:
+            fail(
+                f"Failed to create {directory}/venv: {e}\n"
+                "    On Debian/Ubuntu, make sure python3-venv is installed:\n"
+                "      sudo apt install python3-venv"
+            )
+        if not os.path.exists(pip):
+            fail(
+                f"venv created but pip is missing in {directory}/venv.\n"
+                "    On Debian/Ubuntu, install the missing package:\n"
+                "      sudo apt install python3-venv"
+            )
         ok(f"{directory}/venv created")
+        fresh = True
 
-    subprocess.run([pip, "install", "--quiet", "--upgrade", "pip"], check=True)
+    if fresh:
+        pip_run(pip, ["install", "--upgrade", "pip"], "upgrading pip")
 
     if deps:
-        subprocess.run([pip, "install", "--quiet"] + deps, check=True)
+        pip_run(pip, ["install"] + deps, f"installing {', '.join(deps)}")
         ok(f"installed: {', '.join(deps)}")
 
     if requirements:
         req_path = os.path.join(ROOT, directory, requirements)
-        subprocess.run([pip, "install", "--quiet", "-r", req_path], check=True)
+        if not os.path.exists(req_path):
+            fail(f"{directory}/{requirements} not found.")
+        pip_run(pip, ["install", "-r", req_path], f"installing from {requirements}")
         ok(f"installed from {directory}/{requirements}")
+
+    return os.path.join(venv_dir, "Scripts" if sys.platform == "win32" else "bin", "python")
+
+
+def smoke_test(python, imports, directory):
+    step(f"Smoke-testing {directory}/ imports")
+    for module in imports:
+        try:
+            subprocess.run([python, "-c", f"import {module}"], check=True, capture_output=True)
+            ok(f"import {module}")
+        except subprocess.CalledProcessError:
+            fail(f"'import {module}' failed in {directory}/venv — try re-running with --clean.")
 
 
 def print_next_steps():
     if sys.platform == "win32":
-        activate_script = r"venv\Scripts\activate"
+        script_py = r"script\venv\Scripts\python"
+        test_py   = r"test\venv\Scripts\python"
     else:
-        activate_script = "source venv/bin/activate"
+        script_py = "script/venv/bin/python"
+        test_py   = "test/venv/bin/python"
 
     print("\nSetup complete.\n")
     print("  Run the QP analysis script:")
-    print(f"    cd script && {activate_script} && python run_analysis.py\n")
+    print(f"    cd script && {script_py} run_analysis.py\n")
     print("  Run the Selenium test:")
-    print(f"    cd test  && {activate_script} && python -m pytest\n")
+    print(f"    cd test && {test_py} -m pytest\n")
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--clean", action="store_true", help="delete and rebuild venvs from scratch")
+    cli = parser.parse_args()
+
     check_python()
     check_x264()
     check_chrome()
 
     step("Setting up script/ environment")
-    setup_venv("script", deps=["openpyxl"])
+    script_python = setup_venv("script", deps=["openpyxl"], clean=cli.clean)
 
     step("Setting up test/ environment")
-    setup_venv("test", requirements="requirements.txt")
+    test_python = setup_venv("test", requirements="requirements.txt", clean=cli.clean)
+
+    smoke_test(script_python, ["openpyxl"], "script")
+    smoke_test(test_python, ["selenium", "pytest"], "test")
 
     print_next_steps()
