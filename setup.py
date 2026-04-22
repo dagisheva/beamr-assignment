@@ -14,7 +14,7 @@ import shutil
 import subprocess
 import venv
 
-MIN_PYTHON = (3, 9)  # f-strings (3.6+) and venv module (3.3+) are the actual floor; 3.9 is a reasonable baseline
+MIN_PYTHON = (3, 9)
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
