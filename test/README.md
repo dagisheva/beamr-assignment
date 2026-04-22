@@ -36,7 +36,7 @@ test/
 
 ## Prerequisites
 
-- Python 3.12+
+- Python 3.9+
 - Google Chrome installed
 - `chromedriver` is managed automatically via `webdriver-manager`
 
