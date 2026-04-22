@@ -16,7 +16,7 @@ QP (Quantization Parameter) controls how aggressively video is compressed:
 
 ## Prerequisites
 
-- Python 3.12+
+- Python 3.9+
 - x264 encoder:
   - macOS: `brew install x264`
   - Ubuntu: `sudo apt install x264`

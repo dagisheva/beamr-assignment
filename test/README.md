@@ -64,13 +64,19 @@ pip install -r requirements.txt
 ## Running the tests
 
 ```bash
-pytest
+# macOS / Linux:
+venv/bin/python -m pytest
+# Windows:
+venv\Scripts\python -m pytest
 ```
 
 Headless mode (for CI):
 
 ```bash
-HEADLESS=1 pytest
+# macOS / Linux:
+HEADLESS=1 venv/bin/python -m pytest
+# Windows:
+set HEADLESS=1 && venv\Scripts\python -m pytest
 ```
 
 ## Notes

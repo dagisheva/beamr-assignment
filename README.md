@@ -26,15 +26,13 @@ This creates `script/venv` and `test/venv` with all required dependencies.
 ```bash
 # QP analysis script
 cd script
-source venv/bin/activate   # macOS / Linux
-venv\Scripts\activate      # Windows
-python run_analysis.py
+venv/bin/python run_analysis.py        # macOS / Linux
+venv\Scripts\python run_analysis.py    # Windows
 
 # Selenium test
 cd test
-source venv/bin/activate   # macOS / Linux
-venv\Scripts\activate      # Windows
-python -m pytest
+venv/bin/python -m pytest              # macOS / Linux
+venv\Scripts\python -m pytest          # Windows
 ```
 
 See [script/README.md](script/README.md) and [test/README.md](test/README.md) for details.
