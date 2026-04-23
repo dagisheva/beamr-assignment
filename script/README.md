@@ -49,7 +49,10 @@ pip install openpyxl
 Place `foreman-cif.yuv` in the script directory, then run:
 
 ```bash
-python run_analysis.py
+# macOS / Linux:
+venv/bin/python run_analysis.py
+# Windows:
+venv\Scripts\python run_analysis.py
 ```
 
 ## Configuration

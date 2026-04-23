@@ -159,9 +159,11 @@ def print_next_steps():
 
     print("\nSetup complete.\n")
     print("  Run the QP analysis script:")
-    print(f"    cd script && {script_py} run_analysis.py\n")
+    print(f"    cd script")
+    print(f"    {script_py} run_analysis.py\n")
     print("  Run the Selenium test:")
-    print(f"    cd test && {test_py} -m pytest\n")
+    print(f"    cd test")
+    print(f"    {test_py} -m pytest\n")
 
 
 if __name__ == "__main__":
